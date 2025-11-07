@@ -86,11 +86,7 @@ contract AmbienceChat {
      * @param timestamp When the message was sent
      */
     event MessageSent(
-        uint256 indexed messageId,
-        uint256 indexed roomId,
-        address indexed sender,
-        string content,
-        uint256 timestamp
+        uint256 indexed messageId, uint256 indexed roomId, address indexed sender, string content, uint256 timestamp
     );
 
     /**
@@ -101,13 +97,7 @@ contract AmbienceChat {
      * @param isPrivate Whether room is private
      * @param createdAt When the room was created
      */
-    event RoomCreated(
-        uint256 indexed roomId,
-        string name,
-        address indexed owner,
-        bool isPrivate,
-        uint256 createdAt
-    );
+    event RoomCreated(uint256 indexed roomId, string name, address indexed owner, bool isPrivate, uint256 createdAt);
 
     /**
      * @dev Emitted when a user is added to a private room
@@ -115,11 +105,7 @@ contract AmbienceChat {
      * @param member Address of the new member
      * @param addedBy Address who added the member
      */
-    event MemberAdded(
-        uint256 indexed roomId,
-        address indexed member,
-        address indexed addedBy
-    );
+    event MemberAdded(uint256 indexed roomId, address indexed member, address indexed addedBy);
 
     /**
      * @dev Emitted when a user is removed from a private room
@@ -127,21 +113,14 @@ contract AmbienceChat {
      * @param member Address of the removed member
      * @param removedBy Address who removed the member
      */
-    event MemberRemoved(
-        uint256 indexed roomId,
-        address indexed member,
-        address indexed removedBy
-    );
+    event MemberRemoved(uint256 indexed roomId, address indexed member, address indexed removedBy);
 
     /**
      * @dev Emitted when a user registers or updates their profile
      * @param user Address of the user
      * @param username Username chosen
      */
-    event UserProfileUpdated(
-        address indexed user,
-        string username
-    );
+    event UserProfileUpdated(address indexed user, string username);
 
     // ============ Modifiers ============
 
@@ -201,10 +180,7 @@ contract AmbienceChat {
 
         require(!usernameTaken[username], "Username already taken");
 
-        userProfiles[msg.sender] = UserProfile({
-            username: username,
-            isRegistered: true
-        });
+        userProfiles[msg.sender] = UserProfile({username: username, isRegistered: true});
 
         usernameTaken[username] = true;
 
@@ -244,13 +220,8 @@ contract AmbienceChat {
 
         uint256 roomId = roomIdCounter++;
 
-        rooms[roomId] = Room({
-            name: name,
-            owner: msg.sender,
-            isPrivate: isPrivate,
-            createdAt: block.timestamp,
-            messageCount: 0
-        });
+        rooms[roomId] =
+            Room({name: name, owner: msg.sender, isPrivate: isPrivate, createdAt: block.timestamp, messageCount: 0});
 
         // Owner is automatically a member of private rooms
         if (isPrivate) {
@@ -267,10 +238,7 @@ contract AmbienceChat {
      * @param roomId ID of the room
      * @param member Address to add as member
      */
-    function addRoomMember(uint256 roomId, address member)
-        external
-        onlyRoomOwner(roomId)
-    {
+    function addRoomMember(uint256 roomId, address member) external onlyRoomOwner(roomId) {
         require(rooms[roomId].isPrivate, "Can only add members to private rooms");
         require(!roomMembers[roomId][member], "Already a member");
         require(member != address(0), "Invalid address");
@@ -285,10 +253,7 @@ contract AmbienceChat {
      * @param roomId ID of the room
      * @param member Address to remove from members
      */
-    function removeRoomMember(uint256 roomId, address member)
-        external
-        onlyRoomOwner(roomId)
-    {
+    function removeRoomMember(uint256 roomId, address member) external onlyRoomOwner(roomId) {
         require(rooms[roomId].isPrivate, "Can only remove members from private rooms");
         require(roomMembers[roomId][member], "Not a member");
         require(member != rooms[roomId].owner, "Cannot remove room owner");
@@ -326,22 +291,14 @@ contract AmbienceChat {
      * @param content Message content
      * @return messageId The ID of the newly created message
      */
-    function sendMessage(uint256 roomId, string calldata content)
-        external
-        canAccessRoom(roomId)
-        returns (uint256)
-    {
+    function sendMessage(uint256 roomId, string calldata content) external canAccessRoom(roomId) returns (uint256) {
         require(bytes(content).length > 0, "Message cannot be empty");
         require(bytes(content).length <= 1000, "Message too long");
 
         uint256 messageId = messageIdCounter++;
 
-        messages[messageId] = Message({
-            sender: msg.sender,
-            content: content,
-            timestamp: block.timestamp,
-            roomId: roomId
-        });
+        messages[messageId] =
+            Message({sender: msg.sender, content: content, timestamp: block.timestamp, roomId: roomId});
 
         // Add message to room's message array for indexing
         roomMessages[roomId].push(messageId);
@@ -374,12 +331,7 @@ contract AmbienceChat {
      * @param roomId ID of the room
      * @return Array of message IDs in the room
      */
-    function getRoomMessageIds(uint256 roomId)
-        external
-        view
-        canAccessRoom(roomId)
-        returns (uint256[] memory)
-    {
+    function getRoomMessageIds(uint256 roomId) external view canAccessRoom(roomId) returns (uint256[] memory) {
         return roomMessages[roomId];
     }
 
@@ -447,12 +399,7 @@ contract AmbienceChat {
      * @param roomId ID of the room
      * @return Number of messages in the room
      */
-    function getRoomMessageCount(uint256 roomId)
-        external
-        view
-        canAccessRoom(roomId)
-        returns (uint256)
-    {
+    function getRoomMessageCount(uint256 roomId) external view canAccessRoom(roomId) returns (uint256) {
         require(roomId < roomIdCounter, "Room does not exist");
         return rooms[roomId].messageCount;
     }
